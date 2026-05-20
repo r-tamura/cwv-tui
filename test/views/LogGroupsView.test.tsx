@@ -4,6 +4,7 @@ import React from "react";
 import { LogGroupsView } from "../../src/views/LogGroupsView.js";
 import type { CloudWatchLogsClient } from "@aws-sdk/client-cloudwatch-logs";
 import type { LogGroup } from "../../src/types.js";
+import { stripAnsi } from "../helpers/ansi.js";
 
 // We never call the real client because initialItems is provided.
 const fakeClient = {} as unknown as CloudWatchLogsClient;
@@ -34,7 +35,7 @@ describe("LogGroupsView", () => {
       />,
     );
     await flush();
-    const frame = lastFrame() ?? "";
+    const frame = stripAnsi(lastFrame());
     expect(frame).toContain("foo-api");
     expect(frame).toContain("bar-worker");
     expect(frame).toContain("baz-cron");
@@ -61,7 +62,7 @@ describe("LogGroupsView", () => {
     stdin.write("bar");
     await flush();
 
-    const frame = lastFrame() ?? "";
+    const frame = stripAnsi(lastFrame());
     expect(frame).toContain("bar-worker");
     expect(frame).not.toContain("foo-api");
     expect(frame).not.toContain("baz-cron");
