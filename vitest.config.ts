@@ -7,7 +7,4 @@ export default defineConfig({
     globals: false,
     testTimeout: 10_000,
   },
-  esbuild: {
-    jsx: "automatic",
-  },
 });
