@@ -1,0 +1,49 @@
+{
+  "name": "@r-tamura/cwv-tui",
+  "version": "0.1.0",
+  "description": "Terminal UI for browsing AWS CloudWatch Logs (groups, streams, Insights)",
+  "type": "module",
+  "bin": {
+    "cwv-tui": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "src",
+    "tsup.config.ts",
+    "tsconfig.json"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "pnpm@10.33.0",
+  "scripts": {
+    "build": "tsup",
+    "prepare": "tsup",
+    "dev": "tsx src/cli.tsx",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@aws-sdk/client-cloudwatch-logs": "^3.658.1",
+    "ink": "^5.0.1",
+    "ink-spinner": "^5.0.0",
+    "ink-text-input": "^6.0.0",
+    "react": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^18.3.3",
+    "aws-sdk-client-mock": "^4.0.1",
+    "ink-testing-library": "^4.0.0",
+    "tsup": "^8.2.4",
+    "tsx": "^4.16.2",
+    "typescript": "^5.5.3",
+    "vitest": "^2.0.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/r-tamura/cwv-tui"
+  },
+  "license": "MIT"
+}
