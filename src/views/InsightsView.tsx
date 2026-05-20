@@ -3,6 +3,7 @@ import TextInput from "ink-text-input";
 import React, { useState } from "react";
 import { Spinner } from "../components/Spinner.js";
 import { useInsightsQuery } from "../hooks/useInsightsQuery.js";
+import { useTextInputLock } from "../state/inputContext.js";
 import { describeAwsError } from "../lib/errors.js";
 import { formatBytes, truncate } from "../lib/format.js";
 import type { CloudWatchLogsClient } from "@aws-sdk/client-cloudwatch-logs";
@@ -13,28 +14,42 @@ export type InsightsViewProps = {
   client: CloudWatchLogsClient;
   logGroupName: string;
   isActive: boolean;
+  onClose: () => void;
 };
 
-export function InsightsView({ client, logGroupName, isActive }: InsightsViewProps) {
+export function InsightsView({
+  client,
+  logGroupName,
+  isActive,
+  onClose,
+}: InsightsViewProps) {
   const [query, setQuery] = useState(DEFAULT_QUERY);
   const [editing, setEditing] = useState(true);
   const { state, run, stop } = useInsightsQuery({ client, logGroupName });
 
+  useTextInputLock(editing);
+
   useInput(
     (input, key) => {
       if (editing) {
+        // While the App's global Esc is suppressed by the text-input lock,
+        // we handle Esc here so the user can leave Insights from edit mode.
+        if (key.escape) {
+          onClose();
+          return;
+        }
         if (key.return) {
           setEditing(false);
           void run(query);
         }
         return;
       }
-      if (key.escape) {
-        if (state.phase === "running" || state.phase === "starting") {
-          void stop();
-        }
-        setEditing(true);
-      } else if (input === "e") {
+      // Not editing: App handles Esc (POP). For running queries, also stop.
+      if (key.escape && (state.phase === "running" || state.phase === "starting")) {
+        void stop();
+        // App will also POP this route; unmount cleanup will stop again (no-op).
+      }
+      if (input === "e") {
         setEditing(true);
       } else if (input === "r" && state.phase === "done") {
         void run(query);

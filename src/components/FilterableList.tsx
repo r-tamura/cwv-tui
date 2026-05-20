@@ -1,6 +1,7 @@
 import { Box, Text, useInput } from "ink";
 import TextInput from "ink-text-input";
 import React, { useEffect, useMemo, useState } from "react";
+import { useTextInputLock } from "../state/inputContext.js";
 import { truncate } from "../lib/format.js";
 
 export type FilterableListProps<T> = {
@@ -27,6 +28,8 @@ export function FilterableList<T>({
   const [filter, setFilter] = useState("");
   const [filterMode, setFilterMode] = useState(false);
   const [cursor, setCursor] = useState(0);
+
+  useTextInputLock(filterMode);
 
   const filtered = useMemo(() => {
     if (!filter) return items;
