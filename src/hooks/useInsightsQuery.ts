@@ -36,6 +36,13 @@ export type UseInsightsQueryArgs = {
   logGroupName: string;
 };
 
+export type RunOptions = {
+  /** epoch ms; defaults to now - 1h (handled in startInsightsQuery). */
+  startTimeMs?: number;
+  /** epoch ms; defaults to now (handled in startInsightsQuery). */
+  endTimeMs?: number;
+};
+
 export function useInsightsQuery({ client, logGroupName }: UseInsightsQueryArgs) {
   const [state, setState] = useState<InsightsRunState>({ phase: "idle" });
   const queryIdRef = useRef<string | undefined>(undefined);
@@ -51,7 +58,7 @@ export function useInsightsQuery({ client, logGroupName }: UseInsightsQueryArgs)
   }, [client]);
 
   const run = useCallback(
-    async (queryString: string) => {
+    async (queryString: string, opts?: RunOptions) => {
       cancelledRef.current = false;
       setState({ phase: "starting" });
       let queryId: string;
@@ -59,6 +66,8 @@ export function useInsightsQuery({ client, logGroupName }: UseInsightsQueryArgs)
         queryId = await startInsightsQuery(client, {
           logGroupNames: [logGroupName],
           queryString,
+          startTimeMs: opts?.startTimeMs,
+          endTimeMs: opts?.endTimeMs,
         });
       } catch (e: unknown) {
         setState({
