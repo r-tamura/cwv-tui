@@ -5,7 +5,7 @@ import { Spinner } from "../components/Spinner.js";
 import { useInsightsQuery } from "../hooks/useInsightsQuery.js";
 import { useTextInputLock } from "../state/inputContext.js";
 import { describeAwsError } from "../lib/errors.js";
-import { formatBytes, truncate } from "../lib/format.js";
+import { formatBytes } from "../lib/format.js";
 import type { CloudWatchLogsClient } from "@aws-sdk/client-cloudwatch-logs";
 
 const DEFAULT_QUERY = "fields @timestamp, @message\n| sort @timestamp desc\n| limit 20";
@@ -57,8 +57,6 @@ export function InsightsView({
     },
     { isActive },
   );
-
-  const width = (process.stdout.columns ?? 100) - 25;
 
   return (
     <Box flexDirection="column" flexGrow={1}>
@@ -127,7 +125,7 @@ export function InsightsView({
                 .map((f) => `${f.field}=${f.value}`)
                 .join(" | ");
               return (
-                <Text key={i}>{truncate(joined, width)}</Text>
+                <Text key={i} wrap="truncate-end">{joined}</Text>
               );
             })}
             {state.rows.length > 30 && (

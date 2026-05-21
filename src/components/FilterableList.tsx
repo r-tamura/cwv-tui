@@ -3,7 +3,6 @@ import TextInput from "ink-text-input";
 import React, { useEffect, useMemo, useState } from "react";
 import { useTextInputLock } from "../state/inputContext.js";
 import { useVimNav } from "../hooks/useVimNav.js";
-import { truncate } from "../lib/format.js";
 import { Highlight } from "./Highlight.js";
 
 export type FilterableListProps<T> = {
@@ -102,13 +101,14 @@ export function FilterableList<T>({
           visible.map((item, idx) => {
             const realIdx = viewportStart + idx;
             const isSelected = realIdx === cursor && !filterMode;
-            const label = truncate(getLabel(item), 100);
+            const label = getLabel(item);
             const bg = isSelected ? "cyan" : undefined;
             return (
               <Text
                 key={getKey(item)}
                 color={isSelected ? "black" : undefined}
                 backgroundColor={bg}
+                wrap="truncate-end"
               >
                 <Highlight text={label} query={filter} backgroundColor={bg} />
               </Text>
