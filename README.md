@@ -1,5 +1,7 @@
 # cwv-tui
 
+[![ci](https://github.com/r-tamura/cwv-tui/actions/workflows/ci.yml/badge.svg)](https://github.com/r-tamura/cwv-tui/actions/workflows/ci.yml)
+
 AWS CloudWatch Logs を読むためのターミナル UI。
 
 - Log Groups の一覧 + インクリメンタル絞り込み
