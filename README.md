@@ -6,7 +6,7 @@ AWS CloudWatch Logs を読むためのターミナル UI。
 
 - Log Groups の一覧 + インクリメンタル絞り込み
 - Log Streams のドリルダウンとイベント表示
-- CloudWatch Logs Insights のクエリ実行
+- CloudWatch Logs Insights のクエリ実行（複数行エディタ対応）
 - Live Tail で Log Group のイベントをリアルタイム表示
 
 ## 使い方
@@ -47,6 +47,8 @@ AWS SDK v3 の標準クレデンシャルチェーンを使用します:
 | `Esc` / `Backspace` | 戻る / 絞り込み解除 |
 | `i` | 現在の Log Group で Insights を開く |
 | `t` | Log Groups: Live Tail を開く / Insights: 時間範囲を変更 (15m / 1h / 6h / 24h / 7d) |
+| `Enter` (Insights 編集中) | クエリに改行を挿入 |
+| `Ctrl+R` (Insights 編集中) | クエリを実行 |
 | `r` | 再読込 |
 | `q` | 終了 |
 

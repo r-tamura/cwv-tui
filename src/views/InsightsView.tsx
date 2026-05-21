@@ -1,6 +1,6 @@
 import { Box, Text, useInput } from "ink";
-import TextInput from "ink-text-input";
 import React, { useState } from "react";
+import { MultilineEditor } from "../components/MultilineEditor.js";
 import { Spinner } from "../components/Spinner.js";
 import { TimeRangePicker } from "../components/TimeRangePicker.js";
 import { useInsightsQuery } from "../hooks/useInsightsQuery.js";
@@ -46,19 +46,9 @@ export function InsightsView({
     (input, key) => {
       // The picker owns its own keys while it's open.
       if (pickerOpen) return;
-      if (editing) {
-        // While the App's global Esc is suppressed by the text-input lock,
-        // we handle Esc here so the user can leave Insights from edit mode.
-        if (key.escape) {
-          onClose();
-          return;
-        }
-        if (key.return) {
-          setEditing(false);
-          runWithRange(query, range);
-        }
-        return;
-      }
+      // While editing, the MultilineEditor owns the keystrokes (Enter inserts
+      // a newline, Ctrl+R submits, Esc cancels). Skip the outer handler.
+      if (editing) return;
       // Not editing: App handles Esc (POP). For running queries, also stop.
       if (key.escape && (state.phase === "running" || state.phase === "starting")) {
         void stop();
@@ -106,15 +96,22 @@ export function InsightsView({
       <Box flexDirection="column" borderStyle="single" borderColor="gray">
         <Text color="yellow">query:</Text>
         {editing ? (
-          <TextInput value={query} onChange={setQuery} onSubmit={() => {
-            setEditing(false);
-            void run(query);
-          }} />
+          <MultilineEditor
+            initialValue={query}
+            isActive={isActive}
+            onChange={setQuery}
+            onSubmit={(text) => {
+              setQuery(text);
+              setEditing(false);
+              runWithRange(text, range);
+            }}
+            onCancel={onClose}
+          />
         ) : (
           <Text>{query}</Text>
         )}
         {editing && (
-          <Text color="gray">[Enter to run, Esc to cancel]</Text>
+          <Text color="gray">[Enter: newline  Ctrl+R: run  Esc: close]</Text>
         )}
       </Box>
 

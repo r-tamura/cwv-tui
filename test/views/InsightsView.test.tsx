@@ -67,7 +67,8 @@ describe("InsightsView time range integration", () => {
       </InputProvider>,
     );
     // Submit the default query so we leave editing mode.
-    stdin.write("\r");
+    // (MultilineEditor: Ctrl+R submits, Enter inserts a newline.)
+    stdin.write("\x12"); // Ctrl+R
     await wait(40);
     // Now press t to open the picker.
     stdin.write("t");
