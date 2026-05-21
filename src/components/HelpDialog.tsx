@@ -33,7 +33,9 @@ const VIEW_SPECIFIC: { title: string; bindings: Binding[] }[] = [
   {
     title: "Insights",
     bindings: [
-      { keys: "Enter (editing)", description: "Run query" },
+      { keys: "Enter (editing)", description: "Insert a newline in the query" },
+      { keys: "Ctrl+R (editing)", description: "Run query" },
+      { keys: "Esc (editing)", description: "Leave Insights" },
       { keys: "e", description: "Edit query" },
       { keys: "r", description: "Re-run last query" },
       { keys: "Esc (running)", description: "Stop query and return to edit" },
