@@ -47,6 +47,17 @@ describe("navigationReducer", () => {
     expect(currentRoute(replaced).kind).toBe("insights");
   });
 
+  it("PUSH can push a liveTail route", () => {
+    const next = navigationReducer(initialNavState, {
+      type: "PUSH",
+      route: { kind: "liveTail", logGroupName: "/aws/lambda/x" },
+    });
+    expect(currentRoute(next)).toEqual({
+      kind: "liveTail",
+      logGroupName: "/aws/lambda/x",
+    });
+  });
+
   it("HOME resets to initial state", () => {
     const deep = navigationReducer(
       navigationReducer(initialNavState, {
