@@ -2,6 +2,7 @@ import { Box, Text, useInput } from "ink";
 import React, { useState } from "react";
 import { Spinner } from "../components/Spinner.js";
 import { useAsync } from "../hooks/useAsync.js";
+import { useVimNav } from "../hooks/useVimNav.js";
 import { describeAwsError } from "../lib/errors.js";
 import { formatTimestamp, truncate } from "../lib/format.js";
 import { getLogEvents } from "../aws/logStreams.js";
@@ -33,20 +34,20 @@ export function LogEventsView({
   // newest first
   const ordered = [...events].sort((a, b) => b.timestamp - a.timestamp);
 
+  useVimNav({
+    length: ordered.length,
+    pageSize: 18,
+    cursor,
+    setCursor,
+    isActive,
+  });
+
   useInput(
     (input, key) => {
-      if (key.downArrow || input === "j") {
-        setCursor((c) => Math.min(ordered.length - 1, c + 1));
-      } else if (key.upArrow || input === "k") {
-        setCursor((c) => Math.max(0, c - 1));
-      } else if (key.return) {
+      if (key.return) {
         setExpanded((v) => !v);
       } else if (input === "r") {
         reload();
-      } else if (input === "g") {
-        setCursor(0);
-      } else if (input === "G") {
-        setCursor(Math.max(0, ordered.length - 1));
       }
     },
     { isActive },

@@ -2,6 +2,7 @@ import { Box, Text, useInput } from "ink";
 import TextInput from "ink-text-input";
 import React, { useEffect, useMemo, useState } from "react";
 import { useTextInputLock } from "../state/inputContext.js";
+import { useVimNav } from "../hooks/useVimNav.js";
 import { truncate } from "../lib/format.js";
 import { Highlight } from "./Highlight.js";
 
@@ -44,6 +45,14 @@ export function FilterableList<T>({
     }
   }, [filtered.length, cursor]);
 
+  useVimNav({
+    length: filtered.length,
+    pageSize: height,
+    cursor,
+    setCursor,
+    isActive: isActive && !filterMode,
+  });
+
   useInput(
     (input, key) => {
       if (filterMode) {
@@ -59,15 +68,7 @@ export function FilterableList<T>({
         setFilterMode(true);
         return;
       }
-      if (key.downArrow || input === "j") {
-        setCursor((c) => Math.min(filtered.length - 1, c + 1));
-      } else if (key.upArrow || input === "k") {
-        setCursor((c) => Math.max(0, c - 1));
-      } else if (input === "g") {
-        setCursor(0);
-      } else if (input === "G") {
-        setCursor(Math.max(0, filtered.length - 1));
-      } else if (key.return) {
+      if (key.return) {
         const item = filtered[cursor];
         if (item) onSelect(item);
       } else if (input === "i" && onSecondary) {

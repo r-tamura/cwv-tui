@@ -146,11 +146,11 @@ function hintsForRoute(kind: string): string {
   const base = "?:help  ";
   switch (kind) {
     case "groups":
-      return `${base}↑↓/jk move  / filter  Enter open  i Insights  q quit`;
+      return `${base}jk/^d/^u/gg/G move  / filter  Enter open  i Insights  q quit`;
     case "streams":
-      return `${base}↑↓/jk move  / filter  Enter open  Esc back`;
+      return `${base}jk/^d/^u/gg/G move  / filter  Enter open  Esc back`;
     case "events":
-      return `${base}↑↓/jk move  Enter expand  r reload  Esc back`;
+      return `${base}jk/^d/^u/gg/G move  Enter expand  r reload  Esc back`;
     case "insights":
       return `${base}Enter run  e edit  Esc stop/back`;
     default:

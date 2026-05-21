@@ -10,8 +10,10 @@ const GLOBAL: Binding[] = [
 ];
 
 const NAV: Binding[] = [
-  { keys: "↑ ↓ / j k", description: "Move cursor" },
-  { keys: "g / G", description: "Jump to first / last" },
+  { keys: "↑ ↓ / j k", description: "Line up / down" },
+  { keys: "Ctrl+D / Ctrl+U", description: "Half page down / up" },
+  { keys: "Ctrl+F / Ctrl+B", description: "Full page down / up" },
+  { keys: "gg / G", description: "Jump to first / last" },
   { keys: "/", description: "Filter (incremental)" },
   { keys: "Enter", description: "Drill in / confirm" },
 ];
