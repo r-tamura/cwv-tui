@@ -36,6 +36,7 @@ const VIEW_SPECIFIC: { title: string; bindings: Binding[] }[] = [
       { keys: "Enter (editing)", description: "Run query" },
       { keys: "e", description: "Edit query" },
       { keys: "r", description: "Re-run last query" },
+      { keys: "t", description: "Choose time range (15m / 1h / 6h / 24h / 7d)" },
       { keys: "Esc (running)", description: "Stop query and return to edit" },
     ],
   },
