@@ -21,7 +21,17 @@ const NAV: Binding[] = [
 const VIEW_SPECIFIC: { title: string; bindings: Binding[] }[] = [
   {
     title: "Log Groups",
-    bindings: [{ keys: "i", description: "Open Insights for highlighted group" }],
+    bindings: [
+      { keys: "i", description: "Open Insights for highlighted group" },
+      { keys: "t", description: "Open Live Tail for highlighted group" },
+    ],
+  },
+  {
+    title: "Live Tail",
+    bindings: [
+      { keys: "c", description: "Clear the on-screen buffer" },
+      { keys: "Esc", description: "End the session and go back" },
+    ],
   },
   {
     title: "Log Events",

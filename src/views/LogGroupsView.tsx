@@ -14,6 +14,7 @@ export type LogGroupsViewProps = {
   isActive: boolean;
   onSelect: (group: LogGroup) => void;
   onOpenInsights: (group: LogGroup) => void;
+  onOpenLiveTail?: (group: LogGroup) => void;
   // optional injection for tests
   initialItems?: readonly LogGroup[];
 };
@@ -23,6 +24,7 @@ export function LogGroupsView({
   isActive,
   onSelect,
   onOpenInsights,
+  onOpenLiveTail,
   initialItems,
 }: LogGroupsViewProps) {
   const { data, loading, error } = useAsync<LogGroup[]>(
@@ -59,6 +61,7 @@ export function LogGroupsView({
         }
         onSelect={onSelect}
         onSecondary={onOpenInsights}
+        onTertiary={onOpenLiveTail}
         isActive={isActive}
         emptyText="no log groups in this region"
       />

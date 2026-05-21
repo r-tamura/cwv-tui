@@ -89,6 +89,28 @@ describe("LogGroupsView", () => {
     unmount();
   });
 
+  it("invokes onOpenLiveTail on `t`", async () => {
+    const onSelect = vi.fn();
+    const onOpenInsights = vi.fn();
+    const onOpenLiveTail = vi.fn();
+    const { stdin, unmount } = render(
+      <LogGroupsView
+        client={fakeClient}
+        isActive
+        onSelect={onSelect}
+        onOpenInsights={onOpenInsights}
+        onOpenLiveTail={onOpenLiveTail}
+        initialItems={items}
+      />,
+    );
+    await flush();
+    stdin.write("t");
+    await flush();
+    expect(onOpenLiveTail).toHaveBeenCalledTimes(1);
+    expect(onOpenLiveTail.mock.calls[0]?.[0]?.name).toBe("/aws/lambda/foo-api");
+    unmount();
+  });
+
   it("invokes onOpenInsights on `i`", async () => {
     const onSelect = vi.fn();
     const onOpenInsights = vi.fn();

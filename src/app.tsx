@@ -3,6 +3,7 @@ import React, { useReducer, useState } from "react";
 import { HelpDialog } from "./components/HelpDialog.js";
 import { StatusBar } from "./components/StatusBar.js";
 import { InsightsView } from "./views/InsightsView.js";
+import { LiveTailView } from "./views/LiveTailView.js";
 import { LogEventsView } from "./views/LogEventsView.js";
 import { LogGroupsView } from "./views/LogGroupsView.js";
 import { LogStreamsView } from "./views/LogStreamsView.js";
@@ -97,6 +98,12 @@ function AppInner({ client, profile, region }: AppProps) {
                 route: { kind: "insights", logGroupName: g.name },
               })
             }
+            onOpenLiveTail={(g) =>
+              dispatch({
+                type: "PUSH",
+                route: { kind: "liveTail", logGroupName: g.name },
+              })
+            }
           />
         )}
         {route.kind === "streams" && (
@@ -132,6 +139,13 @@ function AppInner({ client, profile, region }: AppProps) {
             onClose={() => dispatch({ type: "POP" })}
           />
         )}
+        {route.kind === "liveTail" && (
+          <LiveTailView
+            client={client}
+            logGroupName={route.logGroupName}
+            isActive
+          />
+        )}
       </Box>
       <StatusBar
         profile={profile}
@@ -146,13 +160,15 @@ function hintsForRoute(kind: string): string {
   const base = "?:help  ";
   switch (kind) {
     case "groups":
-      return `${base}jk/^d/^u/gg/G move  / filter  Enter open  i Insights  q quit`;
+      return `${base}jk/^d/^u/gg/G move  / filter  Enter open  i Insights  t Live Tail  q quit`;
     case "streams":
       return `${base}jk/^d/^u/gg/G move  / filter  Enter open  Esc back`;
     case "events":
       return `${base}jk/^d/^u/gg/G move  Enter expand  r reload  Esc back`;
     case "insights":
       return `${base}Enter run  e edit  Esc stop/back`;
+    case "liveTail":
+      return `${base}c clear  Esc back`;
     default:
       return base;
   }
