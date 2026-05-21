@@ -1,5 +1,6 @@
-import { Box, Text } from "ink";
-import React from "react";
+import { Box, Text, useInput } from "ink";
+import React, { useEffect, useReducer, useRef } from "react";
+import { useTextInputLock } from "../state/inputContext.js";
 
 /**
  * Pure state model for the multiline editor. The text is a single string
@@ -110,12 +111,112 @@ export type MultilineEditorProps = {
   isActive?: boolean;
 };
 
-// Placeholder export so the file is valid before C2 wires up the JSX.
-// The renderer will be added in Task C2.
-export function MultilineEditor(_props: MultilineEditorProps): React.ReactElement {
+/**
+ * Render the editor's text into JSX rows, with a block-style cursor at the
+ * current offset. When the cursor sits at end-of-text we append a "█" so it
+ * is still visible.
+ */
+function renderRows(state: EditorState): React.ReactNode {
+  const { text, cursor } = state;
+  const lines = text.split("\n");
+  // Figure out which (line, col) the cursor lives on.
+  let line = 0;
+  let col = cursor;
+  for (const l of lines) {
+    if (col <= l.length) break;
+    col -= l.length + 1; // account for the consumed "\n"
+    line += 1;
+  }
+  return lines.map((lineText, i) => {
+    if (i !== line) {
+      // No cursor on this line. Render a single space if empty so Ink keeps
+      // the row visible.
+      return (
+        <Text key={i}>{lineText.length === 0 ? " " : lineText}</Text>
+      );
+    }
+    const before = lineText.slice(0, col);
+    const at = lineText.slice(col, col + 1);
+    const after = lineText.slice(col + 1);
+    return (
+      <Text key={i}>
+        {before}
+        {at.length > 0 ? (
+          <Text inverse>{at}</Text>
+        ) : (
+          <Text inverse>{" "}</Text>
+        )}
+        {after}
+      </Text>
+    );
+  });
+}
+
+export function MultilineEditor({
+  initialValue,
+  onChange,
+  onSubmit,
+  onCancel,
+  isActive = true,
+}: MultilineEditorProps): React.ReactElement {
+  const [state, dispatch] = useReducer(editorReducer, initialValue, initialEditor);
+
+  useTextInputLock(isActive);
+
+  // Notify the parent on text changes (but not on the first render).
+  const firstRender = useRef(true);
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    onChange?.(state.text);
+  }, [state.text, onChange]);
+
+  useInput(
+    (input, key) => {
+      if (key.escape) {
+        onCancel?.();
+        return;
+      }
+      if (key.ctrl && input === "r") {
+        onSubmit?.(state.text);
+        return;
+      }
+      if (key.return) {
+        dispatch({ type: "NEWLINE" });
+        return;
+      }
+      if (key.backspace || key.delete) {
+        dispatch({ type: "BACKSPACE" });
+        return;
+      }
+      if (key.leftArrow) {
+        dispatch({ type: "MOVE", dx: -1, dy: 0 });
+        return;
+      }
+      if (key.rightArrow) {
+        dispatch({ type: "MOVE", dx: 1, dy: 0 });
+        return;
+      }
+      if (key.upArrow) {
+        dispatch({ type: "MOVE", dx: 0, dy: -1 });
+        return;
+      }
+      if (key.downArrow) {
+        dispatch({ type: "MOVE", dx: 0, dy: 1 });
+        return;
+      }
+      // Ignore other control-key combos so they don't end up in the buffer.
+      if (key.ctrl || key.meta) return;
+      if (!input) return;
+      // Printable input (may contain multiple characters in a single event).
+      dispatch({ type: "INSERT", ch: input });
+    },
+    { isActive },
+  );
+
   return (
-    <Box>
-      <Text> </Text>
-    </Box>
+    <Box flexDirection="column">{renderRows(state)}</Box>
   );
 }

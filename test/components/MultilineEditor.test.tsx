@@ -1,9 +1,17 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import React from "react";
+import { render } from "ink-testing-library";
 import {
   editorReducer,
   initialEditor,
+  MultilineEditor,
   type EditorState,
 } from "../../src/components/MultilineEditor.js";
+import { stripAnsi } from "../helpers/ansi.js";
+
+function flush(ms = 0) {
+  return new Promise<void>((r) => setTimeout(r, ms));
+}
 
 describe("editorReducer", () => {
   it("initialEditor places the cursor at the end of the text", () => {
@@ -118,5 +126,90 @@ describe("editorReducer", () => {
     const s = editorReducer(s0, { type: "SET", text: "xy" });
     expect(s.text).toBe("xy");
     expect(s.cursor).toBe(2);
+  });
+});
+
+describe("MultilineEditor component", () => {
+  it("renders the initial value across multiple lines", async () => {
+    const { lastFrame, unmount } = render(
+      <MultilineEditor initialValue={"hello\nworld"} isActive />,
+    );
+    await flush(10);
+    const frame = stripAnsi(lastFrame());
+    expect(frame).toContain("hello");
+    expect(frame).toContain("world");
+    unmount();
+  });
+
+  it("Enter inserts a newline (does not submit)", async () => {
+    const onSubmit = vi.fn();
+    const onChange = vi.fn();
+    const { stdin, lastFrame, unmount } = render(
+      <MultilineEditor
+        initialValue="ab"
+        isActive
+        onChange={onChange}
+        onSubmit={onSubmit}
+      />,
+    );
+    await flush(10);
+    stdin.write("\r"); // Enter
+    await flush(10);
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(onChange).toHaveBeenLastCalledWith("ab\n");
+    // After newline the frame should now span at least two text lines.
+    const frame = stripAnsi(lastFrame());
+    expect(frame).toContain("ab");
+    unmount();
+  });
+
+  it("typed characters are inserted at the cursor", async () => {
+    const onChange = vi.fn();
+    const { stdin, unmount } = render(
+      <MultilineEditor initialValue="ab" isActive onChange={onChange} />,
+    );
+    await flush(10);
+    stdin.write("c");
+    await flush(10);
+    expect(onChange).toHaveBeenLastCalledWith("abc");
+    unmount();
+  });
+
+  it("Ctrl+R submits the current text", async () => {
+    const onSubmit = vi.fn();
+    const { stdin, unmount } = render(
+      <MultilineEditor initialValue="run me" isActive onSubmit={onSubmit} />,
+    );
+    await flush(10);
+    stdin.write("\x12"); // Ctrl+R
+    await flush(10);
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    expect(onSubmit).toHaveBeenCalledWith("run me");
+    unmount();
+  });
+
+  it("Esc calls onCancel", async () => {
+    const onCancel = vi.fn();
+    const { stdin, unmount } = render(
+      <MultilineEditor initialValue="x" isActive onCancel={onCancel} />,
+    );
+    await flush(10);
+    stdin.write("\x1B"); // Esc
+    // Ink debounces escape ~20ms before flushing as a lone Esc.
+    await flush(50);
+    expect(onCancel).toHaveBeenCalledTimes(1);
+    unmount();
+  });
+
+  it("Backspace deletes the previous character", async () => {
+    const onChange = vi.fn();
+    const { stdin, unmount } = render(
+      <MultilineEditor initialValue="abc" isActive onChange={onChange} />,
+    );
+    await flush(10);
+    stdin.write("\x7F"); // Backspace
+    await flush(10);
+    expect(onChange).toHaveBeenLastCalledWith("ab");
+    unmount();
   });
 });
