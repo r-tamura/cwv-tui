@@ -2,7 +2,8 @@ export type Route =
   | { kind: "groups" }
   | { kind: "streams"; logGroupName: string }
   | { kind: "events"; logGroupName: string; logStreamName: string }
-  | { kind: "insights"; logGroupName?: string };
+  | { kind: "insights"; logGroupName?: string }
+  | { kind: "liveTail"; logGroupName: string };
 
 export type NavState = {
   stack: Route[];

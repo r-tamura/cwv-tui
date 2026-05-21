@@ -11,6 +11,7 @@ export type FilterableListProps<T> = {
   getLabel: (item: T) => string;
   onSelect: (item: T) => void;
   onSecondary?: (item: T) => void; // bound to `i` (Insights)
+  onTertiary?: (item: T) => void; // bound to `t` (Live Tail)
   isActive: boolean;
   emptyText?: string;
   height?: number;
@@ -22,6 +23,7 @@ export function FilterableList<T>({
   getLabel,
   onSelect,
   onSecondary,
+  onTertiary,
   isActive,
   emptyText = "no items",
   height = 20,
@@ -73,6 +75,9 @@ export function FilterableList<T>({
       } else if (input === "i" && onSecondary) {
         const item = filtered[cursor];
         if (item) onSecondary(item);
+      } else if (input === "t" && onTertiary) {
+        const item = filtered[cursor];
+        if (item) onTertiary(item);
       }
     },
     { isActive },
