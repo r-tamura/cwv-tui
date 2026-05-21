@@ -12,7 +12,7 @@ async function main(): Promise<number> {
     return 0;
   }
   if (args.version) {
-    process.stdout.write("cwv-tui 0.1.0\n");
+    process.stdout.write("cwv-tui 0.2.0\n");
     return 0;
   }
 
