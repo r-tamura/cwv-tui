@@ -6,3 +6,6 @@ coverage/
 .vitest/
 package-lock.json
 yarn.lock
+
+# Claude Code: per-developer settings (skills/ and settings.json are shared).
+.claude/settings.local.json
