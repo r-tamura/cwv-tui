@@ -145,26 +145,22 @@ export function MetricChart({
     ? `  [fetch failed${error.message ? `: ${error.message}` : ""}]`
     : "";
 
-  // No usable data → header only, no chart body.
-  if (count === 0) {
-    return (
-      <Box flexDirection="column">
-        <Text wrap="truncate-end">
-          <Text>{indicator}</Text>
-          <Text bold={selected}>{title}</Text>
-          <Text>{headerStats}</Text>
-          {errorSuffix && <Text color="red">{errorSuffix}</Text>}
-        </Text>
-      </Box>
-    );
-  }
-
-  // Render body.
-  const values = toPlotValues(series);
+  // Always render a chart body, even when the window is empty — a flat
+  // zero line keeps the dashboard's row heights uniform and tells the
+  // truth ("no events" really is 0 for Sum/Count metrics). The header
+  // already shows "(0 pts)" so the user can distinguish "no data" from
+  // "actual zero data".
+  const values = count === 0 ? new Array(20).fill(0) : toPlotValues(series);
   // asciichart's `height` option = rows - 1; clamp to ≥ 1 so we always plot.
   const plotHeight = Math.max(1, height - 1);
   const body = asciichart.plot(values, { height: plotHeight });
   const bodyLines = body.split("\n");
+  // asciichart collapses flat data into a single axis line, which breaks
+  // the dashboard's uniform row heights. Pad with whitespace lines (Ink
+  // would collapse fully-empty Text rows away) so every chart card
+  // occupies the same vertical space regardless of data.
+  while (bodyLines.length < plotHeight + 1) bodyLines.push(" ");
+  const bodyDim = count === 0;
 
   return (
     <Box flexDirection="column">
@@ -176,7 +172,7 @@ export function MetricChart({
       </Text>
       <Box flexDirection="column">
         {bodyLines.map((line: string, i: number) => (
-          <Text key={i} wrap="truncate-end">
+          <Text key={i} wrap="truncate-end" dimColor={bodyDim}>
             {line}
           </Text>
         ))}

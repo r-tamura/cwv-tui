@@ -84,6 +84,28 @@ describe("MetricChart", () => {
     unmount();
   });
 
+  it("renders a flat-zero chart body when the series has no usable points", () => {
+    // Quiet metrics (e.g. Lambda Invocations on a dormant function) come
+    // back as `points: []` from GetMetricData. Older versions of this
+    // component only rendered the header in that case, leaving the
+    // dashboard's row heights uneven. Now we draw a flat zero line so
+    // each row keeps its configured height and the user can still tell
+    // graphs apart at a glance.
+    const empty: Series = { chartId: "empty", label: "Quiet", points: [] };
+    const height = 6;
+    const { lastFrame, unmount } = render(
+      <MetricChart title="Errors" series={empty} height={height} />,
+    );
+    const frame = stripAnsi(lastFrame() ?? "");
+    expect(frame).toContain("Errors");
+    expect(frame).toContain("(0 pts)");
+    // asciichart's axis glyphs (┼ for flat lines, ┤ otherwise) are
+    // always present when a body is rendered.
+    expect(frame).toMatch(/[┤┼]/);
+    expect(frame.split("\n").length).toBeGreaterThanOrEqual(height);
+    unmount();
+  });
+
   it("shows the selected indicator when selected is true", () => {
     const series: Series = {
       chartId: "c3",
