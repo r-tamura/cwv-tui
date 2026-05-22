@@ -1,10 +1,10 @@
 ---
-name: run
-description: Launch and drive cwv-tui (CloudWatch Logs/Metrics TUI) against a real AWS account to verify a change end-to-end. Use when asked to run, start, smoke-test, or visually confirm a change works in the actual app (not just tests).
+name: cwv
+description: Launch and drive cwv-tui (CloudWatch Logs/Metrics TUI) against a real AWS account to verify a change end-to-end. Use when asked to run, start, smoke-test, or visually confirm a change works in the actual app (not just tests). Prefer this project-scoped skill over the generic built-in `run`.
 version: 1.0.0
 ---
 
-# Run cwv-tui
+# /cwv — run cwv-tui
 
 This is an interactive Ink/React TUI that talks to live AWS CloudWatch.
 It must run in a real TTY, with valid AWS credentials, against a real
