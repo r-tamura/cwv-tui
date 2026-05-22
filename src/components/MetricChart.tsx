@@ -23,6 +23,13 @@ export type MetricChartProps = {
   title: string;
   series: Series | undefined;
   height: number;
+  /**
+   * Total horizontal cells the chart card should occupy. When set, the
+   * values array is downsampled to fit so asciichart's natural width
+   * (= array length + ~7 axis-label cells) stays within the budget.
+   * Omit for the legacy "use whatever fits in the values array" behavior.
+   */
+  width?: number;
   /** When the parent shows a refresh-in-flight indicator. */
   loading?: boolean;
   /** When true, the row is rendered with a selected indicator (▌ + accent). */
@@ -30,6 +37,20 @@ export type MetricChartProps = {
   /** Non-null when the most recent fetch failed; previous series is kept. */
   error?: Error;
 };
+
+/**
+ * Drop values down to `target` items by sampling uniformly. Keeps the
+ * shape recognisable without averaging (averaging hides spikes).
+ */
+function downsample(values: number[], target: number): number[] {
+  if (target <= 0 || values.length <= target) return values;
+  const out: number[] = [];
+  const step = values.length / target;
+  for (let i = 0; i < target; i++) {
+    out.push(values[Math.floor(i * step)] ?? 0);
+  }
+  return out;
+}
 
 const SELECTED_INDICATOR = "▌ ";
 const UNSELECTED_INDICATOR = "  ";
@@ -93,6 +114,7 @@ export function MetricChart({
   title,
   series,
   height,
+  width,
   loading,
   selected,
   error,
@@ -150,7 +172,15 @@ export function MetricChart({
   // truth ("no events" really is 0 for Sum/Count metrics). The header
   // already shows "(0 pts)" so the user can distinguish "no data" from
   // "actual zero data".
-  const values = count === 0 ? new Array(20).fill(0) : toPlotValues(series);
+  let values = count === 0 ? new Array(20).fill(0) : toPlotValues(series);
+  // Fit horizontally if the parent gave us a width budget. asciichart
+  // adds ~7 cells of axis labels on top of the values array length, so
+  // subtract that from the budget. Indicators and a small margin also
+  // eat ~2 cells.
+  if (typeof width === "number" && width > 0) {
+    const arrayBudget = Math.max(1, width - 9);
+    values = downsample(values, arrayBudget);
+  }
   // asciichart's `height` option = rows - 1; clamp to ≥ 1 so we always plot.
   const plotHeight = Math.max(1, height - 1);
   const body = asciichart.plot(values, { height: plotHeight });

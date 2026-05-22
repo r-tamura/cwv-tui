@@ -106,6 +106,33 @@ describe("MetricChart", () => {
     unmount();
   });
 
+  it("downsamples the body when a horizontal width budget is given", () => {
+    // 200 points should be sampled way down when the parent budget is 30.
+    // Compare body length against the no-budget rendering: it must be
+    // strictly shorter.
+    const series: Series = {
+      chartId: "wide",
+      label: "Wide",
+      points: pointsOf(Array.from({ length: 200 }, (_, i) => Math.sin(i / 5))),
+    };
+    const renderBody = (props: { width?: number }) => {
+      const { lastFrame, unmount } = render(
+        <MetricChart title="Errors" series={series} height={5} {...props} />,
+      );
+      const frame = stripAnsi(lastFrame() ?? "");
+      // Pick body rows (axis glyphs ┤ or ┼), not the header line.
+      const bodyLine = frame
+        .split("\n")
+        .find((l) => /[┤┼]/.test(l)) ?? "";
+      unmount();
+      return bodyLine.length;
+    };
+    const wide = renderBody({});
+    const narrow = renderBody({ width: 30 });
+    expect(narrow).toBeLessThan(wide);
+    expect(narrow).toBeLessThanOrEqual(40); // ~ width budget + axis labels
+  });
+
   it("shows the selected indicator when selected is true", () => {
     const series: Series = {
       chartId: "c3",

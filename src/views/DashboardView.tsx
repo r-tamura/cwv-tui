@@ -24,6 +24,19 @@ export type DashboardViewProps = {
   refreshSec?: number;
 };
 
+/** Minimum readable width per chart card. asciichart needs ~30 cells for
+ * the body + axis labels to make sense; below that the chart degrades to
+ * noise, so we fall back to fewer columns instead. */
+const MIN_CARD_WIDTH = 32;
+/** Hard cap regardless of terminal width — beyond five columns the
+ * dashboard reads more like a wall than a grid. */
+const MAX_COLUMNS = 5;
+
+function pickColumnCount(terminalCols: number): number {
+  const max = Math.max(1, Math.floor(terminalCols / MIN_CARD_WIDTH));
+  return Math.min(MAX_COLUMNS, max);
+}
+
 /**
  * Best-effort: figure out which preset matches the current window so the
  * picker opens with its cursor on the right row. If none matches we fall
@@ -110,6 +123,14 @@ export function DashboardView({
 
   const currentRange = inferRangeId(window);
 
+  // Lay charts out left-to-right, wrapping into rows. The column count
+  // tracks the terminal width so we get up to five charts side-by-side
+  // on a wide monitor and gracefully fall back to a single column on
+  // narrow ones. Cursor order stays linear (reading order).
+  const terminalCols = process.stdout.columns ?? 100;
+  const columnCount = pickColumnCount(terminalCols);
+  const cardWidth = Math.max(MIN_CARD_WIDTH, Math.floor(terminalCols / columnCount));
+
   return (
     <Box flexDirection="column" flexGrow={1}>
       <Box>
@@ -137,17 +158,24 @@ export function DashboardView({
         />
       ) : null}
 
-      <Box flexDirection="column" flexGrow={1}>
+      {/*
+        Yoga's flexbox handles the layout: each card declares its width,
+        the parent flex-wraps at the terminal's edge. No manual chunking.
+        Reading order (left→right, top→bottom) keeps Vim navigation linear.
+      */}
+      <Box flexDirection="row" flexWrap="wrap" flexGrow={1}>
         {charts.map((spec, i) => (
-          <MetricChart
-            key={spec.id}
-            title={spec.title}
-            series={seriesByChart.get(spec.id)}
-            height={spec.height}
-            loading={loading}
-            selected={i === cursor}
-            error={errorByChart.get(spec.id)}
-          />
+          <Box key={spec.id} flexDirection="column" width={cardWidth}>
+            <MetricChart
+              title={spec.title}
+              series={seriesByChart.get(spec.id)}
+              height={spec.height}
+              width={cardWidth}
+              loading={loading}
+              selected={i === cursor}
+              error={errorByChart.get(spec.id)}
+            />
+          </Box>
         ))}
       </Box>
 
