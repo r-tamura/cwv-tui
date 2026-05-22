@@ -95,10 +95,13 @@ dashboards:
 ```bash
 pnpm install
 pnpm dev -- --profile sandbox       # tsx でホットに起動
+pnpm demo -- --profile sandbox      # examples/dashboards.yaml 付きで起動 (Dashboard モードのスモーク用)
 pnpm test                           # vitest
 pnpm typecheck                      # tsc --noEmit
 pnpm build                          # tsup
 ```
+
+`pnpm demo` で読まれる `examples/dashboards.yaml` は Lambda / API Gateway のテンプレ。チャートの `dimensions` を自分の環境のリソース名に書き換えれば即座にデータが流れます (書き換えなくても画面構成は確認可能)。
 
 ## ライセンス
 

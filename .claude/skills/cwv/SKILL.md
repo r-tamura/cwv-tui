@@ -31,8 +31,11 @@ account. There is no headless mode.
 # Dev (hot, no build): tsx runs src/cli.tsx directly
 pnpm dev -- --profile sandbox --region ap-northeast-1
 
-# With a metrics dashboard:
-pnpm dev -- --profile sandbox --config ./examples/dashboards.yaml
+# Demo dashboard: pre-wired to examples/dashboards.yaml (Lambda + API GW templates)
+pnpm demo -- --profile sandbox
+
+# Custom config:
+pnpm dev -- --profile sandbox --config /path/to/your.yaml
 
 # Production-shape: build first, then run dist/
 pnpm build && node dist/cli.js --profile sandbox

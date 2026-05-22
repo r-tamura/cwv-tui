@@ -1,0 +1,57 @@
+# cwv-tui sample dashboards config.
+#
+# Used by `pnpm demo` to launch cwv-tui with a starter dashboard. You will
+# almost certainly want to swap the dimension values (`<your-function>` etc.)
+# for resources that actually exist in your AWS account before the charts
+# show useful data — but the wiring works either way: empty charts still
+# render, and the Tab/Alarms/Logs tabs are exercised regardless.
+#
+# Schema reference:
+# - Each dashboard has a title and a list of charts.
+# - `stat` accepts Sum / Average / Maximum / Minimum / SampleCount / p50..p99.
+# - `dimensions` is a free-form KV map, passed straight through to GetMetricData.
+# - `logGroups` is the drill-down target for Enter on a chart row.
+
+defaultDashboard: lambda
+
+dashboards:
+  lambda:
+    title: Lambda overview
+    charts:
+      - title: Invocations
+        namespace: AWS/Lambda
+        metric: Invocations
+        dimensions: { FunctionName: <your-function> }
+        stat: Sum
+        height: 8
+        logGroups: [/aws/lambda/<your-function>]
+      - title: Errors
+        namespace: AWS/Lambda
+        metric: Errors
+        dimensions: { FunctionName: <your-function> }
+        stat: Sum
+        height: 6
+        logGroups: [/aws/lambda/<your-function>]
+      - title: Duration p99
+        namespace: AWS/Lambda
+        metric: Duration
+        dimensions: { FunctionName: <your-function> }
+        stat: p99
+        height: 8
+        logGroups: [/aws/lambda/<your-function>]
+
+  api-gateway:
+    title: API Gateway smoke
+    charts:
+      - title: 5XX errors
+        namespace: AWS/ApiGateway
+        metric: 5XXError
+        dimensions: { ApiName: <your-api> }
+        stat: Sum
+        height: 6
+      - title: Latency p95
+        namespace: AWS/ApiGateway
+        metric: Latency
+        dimensions: { ApiName: <your-api> }
+        stat: p95
+        height: 8

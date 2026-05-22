@@ -19,6 +19,7 @@
     "build": "tsup",
     "prepare": "tsup",
     "dev": "tsx src/cli.tsx",
+    "demo": "tsx src/cli.tsx --config ./examples/dashboards.yaml",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
