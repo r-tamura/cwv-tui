@@ -1,7 +1,7 @@
 {
   "name": "@r-tamura/cwv-tui",
-  "version": "0.2.0",
-  "description": "Terminal UI for browsing AWS CloudWatch Logs (groups, streams, Insights)",
+  "version": "0.3.0",
+  "description": "Terminal UI for browsing AWS CloudWatch Logs and Metrics (dashboards, alarms, Insights, Live Tail)",
   "type": "module",
   "bin": {
     "cwv-tui": "./dist/cli.js"

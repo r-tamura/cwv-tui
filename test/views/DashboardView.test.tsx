@@ -115,10 +115,10 @@ describe("DashboardView", () => {
     await flush();
     const frame = stripAnsi(lastFrame());
     expect(frame).toContain("Lambda Production");
-    // One MetricChart per spec. The Track B stub prints a recognizable
-    // placeholder; count occurrences to verify the stack length.
-    const chartCount = frame.split("[MetricChart").length - 1;
-    expect(chartCount).toBe(dashboard.charts.length);
+    // One MetricChart per spec — each renders its title in the header line.
+    for (const c of dashboard.charts) {
+      expect(frame).toContain(c.title);
+    }
     // Footer hint is present.
     expect(frame).toContain("Enter→Insights");
     unmount();

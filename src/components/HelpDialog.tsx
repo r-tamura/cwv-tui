@@ -5,6 +5,7 @@ type Binding = { keys: string; description: string };
 
 const GLOBAL: Binding[] = [
   { keys: "?", description: "Show this help" },
+  { keys: "Tab / Shift+Tab", description: "Cycle top-level modes (Dashboard / Alarms / Logs)" },
   { keys: "q", description: "Quit (at top-level view)" },
   { keys: "Esc / Backspace", description: "Back to previous screen" },
 ];
@@ -19,6 +20,22 @@ const NAV: Binding[] = [
 ];
 
 const VIEW_SPECIFIC: { title: string; bindings: Binding[] }[] = [
+  {
+    title: "Dashboard",
+    bindings: [
+      { keys: "t", description: "Choose time range (15m / 1h / 6h / 24h / 7d)" },
+      { keys: "r", description: "Manual refresh" },
+      { keys: "p", description: "Pause / resume auto-refresh" },
+      { keys: "Enter", description: "Drill into Insights for the chart's logGroups" },
+      { keys: "d", description: "Switch dashboard" },
+    ],
+  },
+  {
+    title: "Alarms",
+    bindings: [
+      { keys: "Enter", description: "Open the alarm's underlying metric (when available)" },
+    ],
+  },
   {
     title: "Log Groups",
     bindings: [

@@ -2,12 +2,13 @@
 
 [![ci](https://github.com/r-tamura/cwv-tui/actions/workflows/ci.yml/badge.svg)](https://github.com/r-tamura/cwv-tui/actions/workflows/ci.yml)
 
-AWS CloudWatch Logs を読むためのターミナル UI。
+AWS CloudWatch を読むためのオンコール向けターミナル UI。
 
-- Log Groups の一覧 + インクリメンタル絞り込み
-- Log Streams のドリルダウンとイベント表示
-- CloudWatch Logs Insights のクエリ実行（複数行エディタ対応）
-- Live Tail で Log Group のイベントをリアルタイム表示
+- **Dashboard** — YAML 設定で定義したメトリクスを ASCII チャートで一覧、30 秒ごとに自動更新
+- **Alarms** — アラーム状態の一覧 + 全モード共通の「赤いものは何件？」バナー
+- **Logs** — Log Groups / Streams / Events
+- **Logs Insights** — 複数行クエリエディタ + 時間範囲ピッカー
+- **Live Tail** — Log Group のリアルタイム追従
 
 ## 使い方
 
@@ -33,11 +34,40 @@ AWS SDK v3 の標準クレデンシャルチェーンを使用します:
 3. `~/.aws/credentials`, `~/.aws/config`
 4. EC2/ECS/EKS のロール
 
+## Dashboard 設定 (任意)
+
+`~/.config/cwv-tui/dashboards.yaml` を作成すると、起動時に Dashboard モードがランディング画面になります。設定ファイルが無い場合は v0.2 と同じ Logs-only モードで起動します。
+
+```yaml
+defaultDashboard: lambda-prod
+dashboards:
+  lambda-prod:
+    title: Lambda Production
+    charts:
+      - title: Errors
+        namespace: AWS/Lambda
+        metric: Errors
+        dimensions: { FunctionName: foo-api }
+        stat: Sum
+        height: 8
+        logGroups: [/aws/lambda/foo-api]  # Enter でこの Log Group の Insights へ
+      - title: Duration p99
+        namespace: AWS/Lambda
+        metric: Duration
+        dimensions: { FunctionName: foo-api }
+        stat: p99
+        height: 8
+        logGroups: [/aws/lambda/foo-api]
+```
+
+`--config <path>` または `$CWV_TUI_CONFIG` で別の設定ファイルを指定できます。
+
 ## キーバインド
 
 | Key | Action |
 |---|---|
 | `?` | ショートカット一覧を表示 |
+| `Tab` / `Shift+Tab` | トップレベルモード切替 (Dashboard / Alarms / Logs) |
 | `↑ / ↓` `j / k` | 1 行上下 |
 | `Ctrl+D` / `Ctrl+U` | 半画面下 / 上 |
 | `Ctrl+F` / `Ctrl+B` | 一画面下 / 上 |
@@ -46,9 +76,11 @@ AWS SDK v3 の標準クレデンシャルチェーンを使用します:
 | `Enter` | 選択 / 実行 |
 | `Esc` / `Backspace` | 戻る / 絞り込み解除 |
 | `i` | 現在の Log Group で Insights を開く |
-| `t` | Log Groups: Live Tail を開く / Insights: 時間範囲を変更 (15m / 1h / 6h / 24h / 7d) |
+| `t` | Log Groups: Live Tail / Dashboard・Insights: 時間範囲を変更 (15m / 1h / 6h / 24h / 7d) |
 | `Enter` (Insights 編集中) | クエリに改行を挿入 |
 | `Ctrl+R` (Insights 編集中) | クエリを実行 |
+| `p` (Dashboard) | 自動リフレッシュを一時停止 / 再開 |
+| `d` (Dashboard) | 複数ダッシュボード切替 |
 | `r` | 再読込 |
 | `q` | 終了 |
 

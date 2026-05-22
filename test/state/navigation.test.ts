@@ -7,17 +7,18 @@ import {
 } from "../../src/state/navigation.js";
 
 describe("navigationReducer", () => {
-  it("starts on the groups route", () => {
+  it("starts on the groups route in logs mode", () => {
+    expect(initialNavState.mode).toBe("logs");
     expect(currentRoute(initialNavState).kind).toBe("groups");
     expect(canGoBack(initialNavState)).toBe(false);
   });
 
-  it("PUSH appends a route", () => {
+  it("PUSH appends a route to the active mode's stack", () => {
     const next = navigationReducer(initialNavState, {
       type: "PUSH",
       route: { kind: "streams", logGroupName: "/aws/lambda/x" },
     });
-    expect(next.stack).toHaveLength(2);
+    expect(next.stacks.logs).toHaveLength(2);
     expect(currentRoute(next)).toEqual({
       kind: "streams",
       logGroupName: "/aws/lambda/x",
@@ -31,7 +32,7 @@ describe("navigationReducer", () => {
       route: { kind: "streams", logGroupName: "/x" },
     });
     const popped = navigationReducer(pushed, { type: "POP" });
-    expect(popped.stack).toHaveLength(1);
+    expect(popped.stacks.logs).toHaveLength(1);
 
     // POP at root is a no-op
     const popAgain = navigationReducer(popped, { type: "POP" });
@@ -43,7 +44,7 @@ describe("navigationReducer", () => {
       type: "REPLACE",
       route: { kind: "insights" },
     });
-    expect(replaced.stack).toHaveLength(1);
+    expect(replaced.stacks.logs).toHaveLength(1);
     expect(currentRoute(replaced).kind).toBe("insights");
   });
 
@@ -71,5 +72,38 @@ describe("navigationReducer", () => {
     );
     const home = navigationReducer(deep, { type: "HOME" });
     expect(home).toEqual(initialNavState);
+  });
+
+  it("SET_MODE switches the active mode and preserves each stack", () => {
+    const deepInLogs = navigationReducer(initialNavState, {
+      type: "PUSH",
+      route: { kind: "streams", logGroupName: "/x" },
+    });
+    const inAlarms = navigationReducer(deepInLogs, {
+      type: "SET_MODE",
+      mode: "alarms",
+    });
+    expect(inAlarms.mode).toBe("alarms");
+    expect(currentRoute(inAlarms).kind).toBe("alarms");
+    // logs stack is preserved
+    expect(inAlarms.stacks.logs).toHaveLength(2);
+
+    const backInLogs = navigationReducer(inAlarms, {
+      type: "SET_MODE",
+      mode: "logs",
+    });
+    expect(currentRoute(backInLogs).kind).toBe("streams");
+  });
+
+  it("SET_DASHBOARD_STACK seeds the dashboard stack", () => {
+    const seeded = navigationReducer(initialNavState, {
+      type: "SET_DASHBOARD_STACK",
+      dashboardId: "lambda-prod",
+    });
+    expect(seeded.stacks.dashboard).toEqual([
+      { kind: "dashboard", dashboardId: "lambda-prod" },
+    ]);
+    // Active mode is untouched.
+    expect(seeded.mode).toBe("logs");
   });
 });
