@@ -4,9 +4,9 @@ import { render } from "ink-testing-library";
 import {
   editorReducer,
   initialEditor,
-  MultilineEditor,
   type EditorState,
-} from "../../src/components/MultilineEditor.js";
+} from "../../src/components/MultilineEditor.state.js";
+import { MultilineEditor } from "../../src/components/MultilineEditor.js";
 import { stripAnsi } from "../helpers/ansi.js";
 
 function flush(ms = 0) {

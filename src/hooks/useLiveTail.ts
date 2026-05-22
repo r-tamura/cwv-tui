@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useReducer } from "react";
 import type { LogEvent } from "../types.js";
 
 export type LiveTailStatus = "idle" | "streaming" | "ended" | "error";
@@ -8,28 +8,61 @@ export type UseLiveTailArgs = {
   max?: number;
 };
 
+type State = {
+  events: LogEvent[];
+  status: LiveTailStatus;
+  error: Error | undefined;
+};
+
+type Action =
+  | { type: "START" }
+  | { type: "APPEND"; batch: LogEvent[]; max: number }
+  | { type: "ENDED" }
+  | { type: "ERROR"; error: Error };
+
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case "START":
+      // Set streaming and clear any prior error in one transition. Avoids
+      // the "adjust state when a prop changes" pattern that the previous
+      // useEffect+setStatus did at the top of the effect.
+      return { ...state, status: "streaming", error: undefined };
+    case "APPEND": {
+      const merged = state.events.concat(action.batch);
+      const trimmed =
+        merged.length > action.max ? merged.slice(merged.length - action.max) : merged;
+      return { ...state, events: trimmed };
+    }
+    case "ENDED":
+      return { ...state, status: "ended" };
+    case "ERROR":
+      return { ...state, status: "error", error: action.error };
+  }
+}
+
 export function useLiveTail({ subscribe, max = 500 }: UseLiveTailArgs) {
-  const [events, setEvents] = useState<LogEvent[]>([]);
-  const [status, setStatus] = useState<LiveTailStatus>("idle");
-  const [error, setError] = useState<Error | undefined>();
+  const [state, dispatch] = useReducer(reducer, {
+    events: [],
+    status: "idle" as LiveTailStatus,
+    error: undefined,
+  });
 
   useEffect(() => {
     let cancelled = false;
-    setStatus("streaming");
+    dispatch({ type: "START" });
     (async () => {
       try {
         for await (const batch of subscribe()) {
           if (cancelled) return;
-          setEvents((prev) => {
-            const next = prev.concat(batch);
-            return next.length > max ? next.slice(next.length - max) : next;
-          });
+          dispatch({ type: "APPEND", batch, max });
         }
-        if (!cancelled) setStatus("ended");
+        if (!cancelled) dispatch({ type: "ENDED" });
       } catch (e: unknown) {
         if (cancelled) return;
-        setError(e instanceof Error ? e : new Error(String(e)));
-        setStatus("error");
+        dispatch({
+          type: "ERROR",
+          error: e instanceof Error ? e : new Error(String(e)),
+        });
       }
     })();
     return () => {
@@ -37,5 +70,5 @@ export function useLiveTail({ subscribe, max = 500 }: UseLiveTailArgs) {
     };
   }, [subscribe, max]);
 
-  return { events, status, error };
+  return { events: state.events, status: state.status, error: state.error };
 }

@@ -1,6 +1,6 @@
 import { Box, Text, useInput } from "ink";
 import TextInput from "ink-text-input";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useTextInputLock } from "../state/inputContext.js";
 import { useVimNav } from "../hooks/useVimNav.js";
 import { Highlight } from "./Highlight.js";
@@ -30,7 +30,7 @@ export function FilterableList<T>({
 }: FilterableListProps<T>) {
   const [filter, setFilter] = useState("");
   const [filterMode, setFilterMode] = useState(false);
-  const [cursor, setCursor] = useState(0);
+  const [rawCursor, setCursor] = useState(0);
 
   useTextInputLock(filterMode);
 
@@ -40,11 +40,12 @@ export function FilterableList<T>({
     return items.filter((it) => getLabel(it).toLowerCase().includes(f));
   }, [items, filter, getLabel]);
 
-  useEffect(() => {
-    if (cursor >= filtered.length) {
-      setCursor(Math.max(0, filtered.length - 1));
-    }
-  }, [filtered.length, cursor]);
+  // Derive the in-range cursor inline instead of storing a clamped copy in
+  // useState and re-syncing via useEffect (avoids react-doctor/no-derived-state).
+  // useVimNav already clamps its own outputs to [0, length-1] on every move,
+  // so the only adjustment we need is for the case where `filtered` just
+  // shrank past `rawCursor`.
+  const cursor = filtered.length === 0 ? 0 : Math.min(rawCursor, filtered.length - 1);
 
   useVimNav({
     length: filtered.length,
